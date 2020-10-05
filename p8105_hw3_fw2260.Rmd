@@ -9,7 +9,29 @@ This is my solution to Homework 3.
 
 ```{r setup}
 library(tidyverse)
-
+library(p8105.datasets)
 ```
 
 ## Problem 1
+
+Load and clean dataset:
+
+```{r}
+instacart_df <- data("instacart")
+```
+
+
+## Problem 2
+
+```{r}
+accel_df <- read_csv("./data/accel_data.csv") %>% 
+  janitor::clean_names() %>% 
+  pivot_longer(
+    starts_with("activity_"),
+    names_to = "activity",
+    names_prefix = "activity_",
+    values_to = "counts"
+  )
+```
+
+The current dataset is accelerometer data of a 63-year-old male who was admitted to the Advanced Cardiac Care Center of Columbia University Medical Center and diagnosed with congestive heart failure (CHF). The accelerometer measures the wearer's activity at each minute of a 24-hour day starting at midnight. The dataset contains `r nrow(accel_df)` rows and `r ncol(accel_df)` columns.
