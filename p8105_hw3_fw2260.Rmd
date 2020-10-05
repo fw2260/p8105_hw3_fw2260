@@ -25,7 +25,7 @@ The `instacart` dataset contains information on online grocery orders from users
 
 ## Problem 2
 
-```{r}
+```{r clean_accel}
 accel_df <- read_csv("./data/accel_data.csv") %>% 
   janitor::clean_names() %>% 
   pivot_longer(
@@ -33,7 +33,22 @@ accel_df <- read_csv("./data/accel_data.csv") %>%
     names_to = "activity",
     names_prefix = "activity_",
     values_to = "counts"
-  )
+  ) %>% 
+  mutate(day = as.factor(day)) %>% 
+  mutate(day = fct_relevel(day, c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"))) %>% 
+  arrange(week, day)
 ```
 
 The current dataset is accelerometer data of a 63-year-old male who was admitted to the Advanced Cardiac Care Center of Columbia University Medical Center and diagnosed with congestive heart failure (CHF). The accelerometer measures the wearer's activity at each minute of a 24-hour day starting at midnight. The dataset contains `r nrow(accel_df)` rows and `r ncol(accel_df)` columns.
+
+Aggregate across minutes to create a total activity variable for each day:
+
+```{r aggregate_accel}
+accel_df %>% 
+  group_by(week, day) %>% 
+  summarize(
+    total_activity = sum(counts)) %>% 
+  knitr::kable(digits = 0)
+  
+```
+
