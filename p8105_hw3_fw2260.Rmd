@@ -16,9 +16,11 @@ library(p8105.datasets)
 
 Load and clean dataset:
 
-```{r}
-instacart_df <- data("instacart")
+```{r instacart}
+data("instacart")
 ```
+
+The `instacart` dataset contains information on online grocery orders from users of Instacart, an online grocery service that allows you to shop online from local stores. Specifically, there are variables of the IDs of orders, products, and users, when the order was placed, how many days passed since the last order, the name of the products ordered, and what aisle and department they were from. The dataset has `r nrow(instacart)` rows and `r ncol(instacart)` columns.
 
 
 ## Problem 2
