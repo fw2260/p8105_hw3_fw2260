@@ -43,12 +43,22 @@ The current dataset is accelerometer data of a 63-year-old male who was admitted
 
 Aggregate across minutes to create a total activity variable for each day:
 
-```{r aggregate_accel}
+```{r aggregate_activity}
 accel_df %>% 
   group_by(week, day) %>% 
   summarize(
     total_activity = sum(counts)) %>% 
   knitr::kable(digits = 0)
-  
 ```
+
+There does not seem to be any trends? Let's plot these:
+
+```{r plot_activity}
+accel_df %>% 
+  ggplot(aes(x = activity, y = counts, color = day)) +
+  geom_line() +
+  theme(legend.position = "bottom")
+```
+
+
 
