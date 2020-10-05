@@ -16,7 +16,7 @@ library(p8105.datasets)
 
 Load and clean dataset:
 
-```{r instacart}
+```{r import_instacart}
 data("instacart")
 ```
 
@@ -61,4 +61,17 @@ accel_df %>%
 ```
 
 
+## Problem 3
+
+```{r import_noaa}
+data("ny_noaa")
+```
+
+The `ny_noaa` dataset contains weather information from the National Oceanic and Atmospheric Association for all New York State weather stations from January 1, 1981 through December 31, 2010. Specifically, the dataset contains the weather station ID, date of observation, amount of precipitation (in tenths of mm) and snow (in mm), and minimum and maximum temperature (in tenths of degrees C). The current dataset is `r nrow(ny_noaa)` rows and `r ncol(ny_noaa)` columns.
+
+```{r}
+ny_noaa <- 
+  janitor::clean_names(ny_noaa) %>% 
+  separate(date, c("year", "month", "day"), "-")
+```
 
