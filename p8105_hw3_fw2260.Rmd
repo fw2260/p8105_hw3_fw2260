@@ -87,6 +87,7 @@ accel_df <- read_csv("./data/accel_data.csv") %>%
     values_to = "counts"
   ) %>% 
   mutate(
+    activity = as.numeric(activity),
     day = factor(day),
     day = fct_relevel(day, c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"))) %>% 
   arrange(week, day)
@@ -104,7 +105,7 @@ accel_df %>%
   knitr::kable(digits = 0)
 ```
 
-There does not seem to be any trends? Let's plot these:
+Weekends of Week 4 and 5 seem to have lower activity. Let's plot these:
 
 ```{r plot_activity}
 accel_df %>% 
