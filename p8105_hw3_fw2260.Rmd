@@ -20,7 +20,59 @@ Load and clean dataset:
 data("instacart")
 ```
 
-The `instacart` dataset contains information on online grocery orders from users of Instacart, an online grocery service that allows you to shop online from local stores. Specifically, there are variables of the IDs of orders, products, and users, when the order was placed, how many days passed since the last order, the name of the products ordered, and what aisle and department they were from. The dataset has `r nrow(instacart)` rows and `r ncol(instacart)` columns.
+The `instacart` dataset contains information on online grocery orders from users of Instacart, an online grocery service that allows you to shop online from local stores. Each observation is one item ordered by a user. Specifically, there are variables of the IDs of orders, products, and users, when the order was placed, how many days passed since the last order, the name of the product ordered, and what aisle and department it was from. The dataset has `r nrow(instacart)` rows and `r ncol(instacart)` columns.
+
+```{r count_aisles}
+instacart %>% 
+  count(aisle) %>% 
+  arrange(desc(n))
+```
+
+There are `r nrow(distinct(instacart, aisle))` distinct aisles. The aisles with the most products are fresh vegetables, fresh fruits, packaged vegetables and fruits, and yogurt.
+
+Making a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered:
+
+```{r}
+instacart %>% 
+  count(aisle) %>% 
+  filter(n > 10000) %>% 
+  mutate(
+    aisle = factor(aisle),
+    aisle = fct_reorder(aisle, n)
+  ) %>% 
+  ggplot(aes(x = aisle, y = n)) +
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+```
+
+Making a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Number of times each item is ordered is included:
+
+```{r rank_items}
+instacart %>% 
+  filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) %>% 
+  group_by(aisle) %>% 
+  count(product_name) %>% 
+  mutate(
+    rank = min_rank(desc(n))
+  ) %>% 
+  filter(rank < 4) %>% 
+  arrange(aisle, rank) %>% 
+  knitr::kable(digits = 0)
+```
+
+Making a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week:
+
+```{r apple_icecream}
+instacart %>% 
+  filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>% 
+  group_by(product_name, order_dow) %>% 
+  summarize(mean_hour = mean(order_hour_of_day)) %>% 
+  pivot_wider(
+    names_from = order_dow,
+    values_from = mean_hour
+  ) %>% 
+  knitr::kable(digits = 0)
+```
 
 
 ## Problem 2
@@ -34,8 +86,9 @@ accel_df <- read_csv("./data/accel_data.csv") %>%
     names_prefix = "activity_",
     values_to = "counts"
   ) %>% 
-  mutate(day = as.factor(day)) %>% 
-  mutate(day = fct_relevel(day, c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"))) %>% 
+  mutate(
+    day = factor(day),
+    day = fct_relevel(day, c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"))) %>% 
   arrange(week, day)
 ```
 
