@@ -9,6 +9,8 @@ This is my solution to Homework 3.
 
 ```{r setup}
 library(tidyverse)
+library(hexbin)
+library(patchwork)
 library(p8105.datasets)
 
 knitr::opts_chunk$set(
@@ -139,8 +141,7 @@ accel_df %>%
   group_by(week, day) %>% 
   summarize(mean_counts = mean(counts)) %>% 
   ggplot(aes(x = week, y = mean_counts, color = day)) +
-  geom_line() +
-  theme(legend.position = "bottom")
+  geom_line() 
 ```
 
 ## Problem 3
@@ -149,17 +150,75 @@ accel_df %>%
 data("ny_noaa")
 ```
 
-The `ny_noaa` dataset contains weather information from the National Oceanic and Atmospheric Association for all New York State weather stations from January 1, 1981 through December 31, 2010. Specifically, the dataset contains the weather station ID, date of observation, amount of precipitation (in tenths of mm) and snow (in mm), and minimum and maximum temperature (in tenths of degrees C). The current dataset is `r nrow(ny_noaa)` rows and `r ncol(ny_noaa)` columns.
+The `ny_noaa` dataset contains weather information from the National Oceanic and Atmospheric Association for all New York State weather stations from January 1, 1981 through December 31, 2010. Specifically, the dataset contains the weather station ID, date of observation, amount of precipitation (in tenths of mm) and snow (in mm), and minimum and maximum temperature (in tenths of degrees C). Each weather station may collect only a subset of these variables, and therefore the resulting dataset contains extensive missing data. The current dataset is `r nrow(ny_noaa)` rows and `r ncol(ny_noaa)` columns. 
 
-```{r}
-ny_noaa %>%  
-  janitor::clean_names() %>% 
+Cleaning the dataset and changing tenths of a unit to a whole unit:
+
+```{r clean_ny_noaa}
+ny_noaa <-  
+  janitor::clean_names(ny_noaa) %>% 
   separate(date, c("year", "month", "day"), "-") %>% 
   mutate(
     tmin = as.numeric(tmin),
     tmax = as.numeric(tmax),
     tmin = tmin / 10,
-    tmax = tmax / 10
+    tmax = tmax / 10,
+    prcp = prcp / 10
+  ) %>% 
+  drop_na()
+```
+
+Finding out what the most commonly observed values for snowfall:
+
+```{r}
+ny_noaa %>%
+  count(snow) %>% 
+  arrange(desc(n))
+```
+
+The most commonly observed values for snowfall are 0 mm and `NA`. 0 makes sense because in NY, there are many days where it does not snow. `NA` makes sense because there is a lot of missing data.
+
+Plotting average max temperature in January and July in each station across years:
+
+```{r jan_july_plot}
+ny_noaa %>% 
+  filter(month == c("01", "07")) %>% 
+  group_by(id, year, month) %>% 
+  summarize(mean_tmax = mean(tmax)) %>% 
+  ungroup() %>% 
+  ggplot(aes(x = year, y = mean_tmax, group = id, color = id)) +
+  geom_path() +
+  facet_grid(~month) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+  theme(legend.position = "none") +
+  labs(
+    title = "Average maximum temperature in January and July",
+    x = "Year",
+    y = "Average maximum temperature (Celsius)",
+    caption = "Data from the NY NOAA dataset"
   )
+```
+
+Plotting `tmax` vs `tmin` on one graph and showing the distribution of snowfall values greater than 0 and less than 100 separately by year on a second graph:
+
+```{r temp_snowfall}
+tmax_tmin_plot <- 
+  ny_noaa %>% 
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_hex() +
+  theme(legend.position = "right") +
+  labs(
+    title = "Maximum temperature vs Minimum temperature",
+    x = "Minimum temperature (Celsius)",
+    y = "Maximum temperature (Celsius)"
+  )
+
+snowfall_plot <-
+  ny_noaa %>% 
+  filter(snow > 0 & snow < 100) %>% 
+  ggplot(aes(x = year, y = snow)) +
+  geom_point()
+
+tmax_tmin_plot / snowfall_plot
 ```
 
