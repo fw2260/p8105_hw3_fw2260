@@ -194,10 +194,12 @@ ny_noaa %>%
   labs(
     title = "Average maximum temperature in January and July",
     x = "Year",
-    y = "Average maximum temperature (Celsius)",
+    y = "Average maximum temperature (\u00B0C)",
     caption = "Data from the NY NOAA dataset"
   )
 ```
+
+Average maximum temperature is higher in July than January overall, which makes sense as it is summer in NY. 
 
 Plotting `tmax` vs `tmin` on one graph and showing the distribution of snowfall values greater than 0 and less than 100 separately by year on a second graph:
 
@@ -209,16 +211,24 @@ tmax_tmin_plot <-
   theme(legend.position = "right") +
   labs(
     title = "Maximum temperature vs Minimum temperature",
-    x = "Minimum temperature (Celsius)",
-    y = "Maximum temperature (Celsius)"
+    x = "Minimum temp (\u00B0C)",
+    y = "Maximum temp (\u00B0C)"
   )
 
 snowfall_plot <-
   ny_noaa %>% 
   filter(snow > 0 & snow < 100) %>% 
   ggplot(aes(x = year, y = snow)) +
-  geom_point()
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+  labs(
+    title = "Snowfall by Year",
+    x = "Year",
+    y = "Snowfall (mm)",
+    caption = "Data from the NY NOAA dataset"
+  )
 
 tmax_tmin_plot / snowfall_plot
 ```
 
+In general, as minimum temperature increases, so does maximum temperatue. The median snowfall every year is 25 mm, with Q1 around 13 mm and Q3 around 50 mm. There are a few years, like 1998 and 2006, that had less snowfall.
