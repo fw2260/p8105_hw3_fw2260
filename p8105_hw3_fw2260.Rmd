@@ -152,7 +152,7 @@ data("ny_noaa")
 
 The `ny_noaa` dataset contains weather information from the National Oceanic and Atmospheric Association for all New York State weather stations from January 1, 1981 through December 31, 2010. Specifically, the dataset contains the weather station ID, date of observation, amount of precipitation (in tenths of mm) and snow (in mm), and minimum and maximum temperature (in tenths of degrees C). Each weather station may collect only a subset of these variables, and therefore the resulting dataset contains extensive missing data. The current dataset is `r nrow(ny_noaa)` rows and `r ncol(ny_noaa)` columns. 
 
-Cleaning the dataset and changing tenths of a unit to a whole unit:
+Cleaning the dataset:
 
 ```{r clean_ny_noaa}
 ny_noaa <-  
@@ -164,11 +164,12 @@ ny_noaa <-
     tmin = tmin / 10,
     tmax = tmax / 10,
     prcp = prcp / 10
-  ) %>% 
-  drop_na()
+  ) 
 ```
 
-Finding out what the most commonly observed values for snowfall:
+Date was separated into year, month, and day. Temperature and precipitation were changed from tenths of a unit to a whole unit.
+
+Finding out the most commonly observed values for snowfall:
 
 ```{r}
 ny_noaa %>%
@@ -176,7 +177,7 @@ ny_noaa %>%
   arrange(desc(n))
 ```
 
-The most commonly observed values for snowfall are 0 mm and `NA`. 0 makes sense because in NY, there are many days where it does not snow. `NA` makes sense because there is a lot of missing data.
+The most commonly observed values for snowfall are 0 mm and `NA`. 0 makes sense because in NY, there are many days where it does not snow. And `NA` makes sense because many stations did not collect snowfall data.
 
 Plotting average max temperature in January and July in each station across years:
 
@@ -184,7 +185,7 @@ Plotting average max temperature in January and July in each station across year
 ny_noaa %>% 
   filter(month == c("01", "07")) %>% 
   group_by(id, year, month) %>% 
-  summarize(mean_tmax = mean(tmax)) %>% 
+  summarize(mean_tmax = mean(tmax, na.rm = TRUE)) %>% 
   ungroup() %>% 
   ggplot(aes(x = year, y = mean_tmax, group = id, color = id)) +
   geom_path() +
@@ -228,7 +229,7 @@ snowfall_plot <-
     caption = "Data from the NY NOAA dataset"
   )
 
-tmax_tmin_plot / snowfall_plot
+tmax_tmin_plot / snowfall_plot 
 ```
 
-In general, as minimum temperature increases, so does maximum temperatue. The median snowfall every year is 25 mm, with Q1 around 13 mm and Q3 around 50 mm. There are a few years, like 1998 and 2006, that had less snowfall.
+In general, as minimum temperature increases, so does maximum temperature. The median snowfall every year is 25 mm, with Q1 around 13 mm and Q3 around 50 mm. There are a few years, like 1998, 2006, and 2010, that had less snowfall.
