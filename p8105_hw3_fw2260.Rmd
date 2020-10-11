@@ -32,6 +32,8 @@ data("instacart")
 
 The `instacart` dataset contains information on online grocery orders from users of Instacart, an online grocery service that allows you to shop online from local stores. Each observation is one item ordered by a user. Specifically, there are variables of the IDs of orders, products, and users, when the order was placed, how many days passed since the last order, the name of the product ordered, and what aisle and department it was from. The dataset has `r nrow(instacart)` rows and `r ncol(instacart)` columns.
 
+Counting the number of aisles:
+
 ```{r count_aisles}
 instacart %>% 
   count(aisle) %>% 
@@ -108,8 +110,8 @@ accel_df <- read_csv("./data/accel_data.csv") %>%
     activity = as.numeric(activity),
     day = factor(day),
     day = fct_relevel(day, c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")),
-    weekend = if_else(day == "Saturday" | day == "Sunday", "weekend", "weekday")) %>% 
-  relocate(week, day_id, day, weekend, everything()) %>% 
+    day_type = if_else(day == "Saturday" | day == "Sunday", "weekend", "weekday")) %>% 
+  relocate(week, day_id, day, day_type, everything()) %>% 
   arrange(week, day)
 ```
 
@@ -131,18 +133,17 @@ Weekends of Week 4 and 5 seem to have lower activity. Let's plot these:
 accel_df %>% 
   ggplot(aes(x = activity, y = counts, color = day)) +
   geom_line() +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom") +
+  labs(
+    title = "Activity level by day",
+    x = "Minute of the day",
+    y = "Activity level",
+    color = "Day",
+    caption = "Data from the Instacart dataset"
+  )
 ```
 
-That graph is quite messy so let's try using mean counts?
-
-```{r plot_mean_counts}
-accel_df %>% 
-  group_by(week, day) %>% 
-  summarize(mean_counts = mean(counts)) %>% 
-  ggplot(aes(x = week, y = mean_counts, color = day)) +
-  geom_line() 
-```
+Overall, activity count is lowest in the first 300 minutes of the day every day of the week and highest around minutes 1200 to 1300. 
 
 ## Problem 3
 
@@ -175,11 +176,10 @@ ny_noaa <-
     tmin = tmin / 10,
     tmax = tmax / 10,
     prcp = prcp / 10
-  ) %>% 
-  filter(snow != -13)
+  )
 ```
 
-Date was separated into year, month, and day. Month was changed from numbers to names. Temperature and precipitation were changed from tenths of a unit to a whole unit. One station had recorded -13 mm of snowfall so that observation was removed.
+Date was separated into year, month, and day. Month was changed from numbers to names. Temperature and precipitation were changed from tenths of a unit to a whole unit. One station had recorded -13 mm of snowfall, which must be a mistake on NOAA's part.
 
 Finding out the most commonly observed values for snowfall:
 
@@ -189,7 +189,7 @@ ny_noaa %>%
   arrange(desc(n))
 ```
 
-The most commonly observed value for snowfall is 0 mm which makes sense because in NY, there are many days where it does not snow.
+The most commonly observed values for snowfall are 0 mm and `NA`. 0 mm makes sense because in NY, there are many days where it does not snow. `NA` makes sense because not all stations collected snowfall data all the time.
 
 Plotting average max temperature in January and July in each station across years:
 
@@ -201,7 +201,7 @@ ny_noaa %>%
   ungroup() %>% 
   ggplot(aes(x = year, y = mean_tmax, group = id, color = id)) +
   geom_path() +
-  facet_grid(~month) +
+  facet_grid(~ month) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
   theme(legend.position = "none") +
   labs(
@@ -212,7 +212,7 @@ ny_noaa %>%
   )
 ```
 
-Average maximum temperature is higher in July than January overall, which makes sense as it is summer in NY. 
+Average maximum temperature is higher in July than January overall, which makes sense as it is summer in NY. There seems to be an overall slight upward trend in max temperature in January with some dips and peaks every two or three years. But overall, temperatures in both months stayed pretty consistent. One station in 1988 and 1984 had a colder than average July.
 
 Plotting `tmax` vs `tmin` on one graph and showing the distribution of snowfall values greater than 0 and less than 100 separately by year on a second graph:
 
@@ -244,4 +244,4 @@ snowfall_plot <-
 tmax_tmin_plot / snowfall_plot 
 ```
 
-In general, as minimum temperature increases, so does maximum temperature. The median snowfall every year is 25 mm, with Q1 around 13 mm and Q3 around 50 mm. There are a few years, like 1998, 2006, and 2010, that had less snowfall.
+For the top plot, as minimum temperature increases, so does maximum temperature. There seems to be the highest numbers of observations that had minimum temperature of around 15 degrees Celsius and maximum temperature of around 25 degrees Celsius. For the bottom plot, the median snowfall every year is 25 mm, with Q1 around 13 mm and Q3 around 50 mm. There are a few years, like 1998, 2006, and 2010, that had less snowfall.
